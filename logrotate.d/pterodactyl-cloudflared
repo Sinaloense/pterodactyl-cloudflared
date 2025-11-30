@@ -1,0 +1,8 @@
+/var/lib/pterodactyl/volumes/*/logs/cloudflared.log {
+    daily
+    missingok
+    rotate 14
+    notifempty
+    copytruncate
+    sharedscripts
+}
