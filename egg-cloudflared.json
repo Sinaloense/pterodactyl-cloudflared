@@ -1,0 +1,52 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v2",
+        "update_url": null
+    },
+    "exported_at": "2025-11-30T15:41:30-07:00",
+    "name": "Cloudflared",
+    "author": "sinaloensemel@gmail.com",
+    "description": "a generic Cloudflared egg",
+    "features": null,
+    "docker_images": {
+        "Cloudflared": "ghcr.io\/sinaloense\/pterodactyl-cloudflared:latest"
+    },
+    "file_denylist": [],
+    "startup": "cloudflared --loglevel {{LOG_LEVEL}} --logfile \/home\/container\/logs\/cloudflared.log tunnel --no-autoupdate run --token {{TOKEN}}",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"Updated to new configuration\"\r\n}",
+        "logs": "{}",
+        "stop": "^C & ^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# Cloudflared Installation Script\r\n#",
+            "container": "debian@sha256:b4aa902587c2e61ce789849cb54c332b0400fe27b1ee33af4669e1f7e7c3e22f",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "LOG_LEVEL",
+            "description": "Application logging level {debug, info, warn, error, fatal}. At debug level cloudflared will log request URL, method, protocol, content length, as well as, all request and response headers. This can expose sensitive information in your logs. (default: \"info\")",
+            "env_variable": "LOG_LEVEL",
+            "default_value": "info",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|in:debug,info,warn,error,fatal",
+            "field_type": "text"
+        },
+        {
+            "name": "TOKEN",
+            "description": "The Tunnel token.",
+            "env_variable": "TOKEN",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|regex:\/^[A-Za-z0-9_-]+$\/",
+            "field_type": "text"
+        }
+    ]
+}
