@@ -4,7 +4,7 @@
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2025-11-30T15:41:30-07:00",
+    "exported_at": "2025-12-05T22:06:17-07:00",
     "name": "Cloudflared",
     "author": "sinaloensemel@gmail.com",
     "description": "a generic Cloudflared egg",
@@ -13,7 +13,7 @@
         "Cloudflared": "ghcr.io\/sinaloense\/pterodactyl-cloudflared:latest"
     },
     "file_denylist": [],
-    "startup": "cloudflared --loglevel {{LOG_LEVEL}} --logfile \/home\/container\/logs\/cloudflared.log tunnel --no-autoupdate run --token {{TOKEN}}",
+    "startup": "cloudflared --loglevel {{LOG_LEVEL}} --logfile \".\/logs\/cloudflared.log\" tunnel --no-autoupdate run --token {{TOKEN}}",
     "config": {
         "files": "{}",
         "startup": "{\r\n    \"done\": \"Updated to new configuration\"\r\n}",
