@@ -5,10 +5,10 @@ Este repositorio provee lo necesario para integrar un túnel de Cloudflare (clou
 
 ## Contenido del repositorio:
 
-- Dockerfile — Imagen con cloudflared y scripts necesarios.
-- entrypoint.sh — Script de arranque.
-- egg-cloudflared.json — Egg para usar en Pterodactyl.
-- logrotate.d — Configuración de rotación de logs para cloudflared.
+- `Dockerfile` — Imagen con cloudflared y scripts necesarios.
+- `entrypoint.sh` — Script de arranque.
+- `egg-cloudflared.json` — Egg para usar en Pterodactyl.
+- `logrotate.d` — Configuración de rotación de logs para cloudflared.
 
 ## Características
 
@@ -16,7 +16,7 @@ Este repositorio provee lo necesario para integrar un túnel de Cloudflare (clou
 - Permite exponer servicios sin abrir puertos.
 - Compatible con eggs personalizados.
 - Logs rotados automáticamente.
-- Versión de Cloudflared: 2026.1.2.
+- Versión de Cloudflared: `2026.1.2`.
 
 ## Requisitos:
 
@@ -25,8 +25,8 @@ Este repositorio provee lo necesario para integrar un túnel de Cloudflare (clou
 
 ## Instalación:
 
-- Carga egg-cloudflared.json en tu panel.
-- Subir archivo [pterodactyl-cloudflared](https://github.com/Sinaloense/pterodactyl-cloudflared/blob/main/logrotate.d/pterodactyl-cloudflared) en el directorio /etc/logrotate.d/ de tu host principal.
+- Carga `egg-cloudflared.json` en tu panel.
+- Subir archivo [pterodactyl-cloudflared](https://github.com/Sinaloense/pterodactyl-cloudflared/blob/main/logrotate.d/pterodactyl-cloudflared) en el directorio `/etc/logrotate.d/` de tu host principal.
 
 ## Crear un tunnel cloudflare:
 
@@ -34,7 +34,7 @@ Este repositorio provee lo necesario para integrar un túnel de Cloudflare (clou
 
 ## Crear servidor cloudflared
 
-- Al crear tu servidor cloudflared solo debe copiar el token de tu tunnel y colocarlo en TOKEN.
+- Al crear tu servidor cloudflared solo debe copiar el token de tu tunnel y colocarlo en `TOKEN`.
 - Al momento de crear una ruta en tu tunnel cloudflare, en tipo de servicio ingresa HTTP y en URL ingresa IP:PUERTO:
     ```
     Si a tu servidor le asignaste IPV6: [fd7a:3c91:b0e4:9f12:6a3d:84c1:2e9b:5f77]:8001

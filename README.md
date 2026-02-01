@@ -5,10 +5,10 @@ This repository provides everything needed to integrate a Cloudflare tunnel (clo
 
 ## Repository contents
 
-- Dockerfile — Image with cloudflared and required scripts.
-- entrypoint.sh — Startup script.
-- egg-cloudflared.json — Egg to use in Pterodactyl.
-- logrotate.d — Log rotation configuration for cloudflared.
+- `Dockerfile` — Image with cloudflared and required scripts.
+- `entrypoint.sh` — Startup script.
+- `egg-cloudflared.json` — Egg to use in Pterodactyl.
+- `logrotate.d` — Log rotation configuration for cloudflared.
 
 ## Features
 
@@ -16,7 +16,7 @@ This repository provides everything needed to integrate a Cloudflare tunnel (clo
 - Allows exposing services without opening ports.
 - Compatible with custom eggs.
 - Automatic log rotation.
-- Cloudflared version: 2026.1.2.
+- Cloudflared version: `2026.1.2`.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ This repository provides everything needed to integrate a Cloudflare tunnel (clo
 ## Create a cloudflared server
 
 - When creating your cloudflared server, simply copy your tunnel token and place it in `TOKEN`.
-- When creating a route in your Cloudflare tunnel, set the service type to **HTTP** and the URL to **IP:PORT**:
+- When creating a route in your Cloudflare tunnel, set the service type to HTTP and the URL to IP:PORT:
     ```
     If your server was assigned IPv6: [fd7a:3c91:b0e4:9f12:6a3d:84c1:2e9b:5f77]:8001
     If your server was assigned IPv4: 192.168.0.1:8001
