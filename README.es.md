@@ -16,7 +16,7 @@ Este repositorio provee lo necesario para integrar un túnel de Cloudflare (clou
 - Permite exponer servicios sin abrir puertos.
 - Compatible con eggs personalizados.
 - Logs rotados automáticamente.
-- Versión de Cloudflared: 2025.11.1.
+- Versión de Cloudflared: 2026.1.2.
 
 ## Requisitos:
 

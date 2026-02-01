@@ -4,10 +4,10 @@
         "version": "PTDL_v2",
         "update_url": null
     },
-    "exported_at": "2025-12-05T22:06:17-07:00",
+    "exported_at": "2026-02-01T11:38:42-07:00",
     "name": "Cloudflared",
     "author": "sinaloensemel@gmail.com",
-    "description": "a generic Cloudflared egg",
+    "description": "Cloudflared egg",
     "features": null,
     "docker_images": {
         "Cloudflared": "ghcr.io\/sinaloense\/pterodactyl-cloudflared:latest"
@@ -23,7 +23,7 @@
     "scripts": {
         "installation": {
             "script": "#!\/bin\/bash\r\n# Cloudflared Installation Script\r\n#",
-            "container": "debian@sha256:b4aa902587c2e61ce789849cb54c332b0400fe27b1ee33af4669e1f7e7c3e22f",
+            "container": "debian:bookworm-slim",
             "entrypoint": "bash"
         }
     },
