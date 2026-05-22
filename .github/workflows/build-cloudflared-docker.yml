@@ -1,0 +1,59 @@
+name: Build & Push Cloudflared
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Push Cloudflared ${{ matrix.cloudflared_version }}
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        include:
+          - cloudflared_version: 2026.5.0
+            tags: |
+              2026.5.0
+              2026.5
+              latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build image
+        run: |
+          set -e
+
+          TAG_ARGS=""
+
+          while IFS= read -r tag; do
+            tag=$(echo "$tag" | xargs)
+
+            [ -z "$tag" ] && continue
+
+            TAG_ARGS="$TAG_ARGS -t ghcr.io/sinaloense/pterodactyl-cloudflared:$tag"
+          done <<< "${{ matrix.tags }}"
+
+          docker build \
+            --platform linux/amd64 \
+            --build-arg CLOUDFLARED_VERSION="${{ matrix.cloudflared_version }}" \
+            $TAG_ARGS \
+            .
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        run: |
+          while IFS= read -r tag; do
+            tag=$(echo "$tag" | xargs)
+
+            [ -z "$tag" ] && continue
+
+            docker push ghcr.io/sinaloense/pterodactyl-cloudflared:$tag
+          done <<< "${{ matrix.tags }}"

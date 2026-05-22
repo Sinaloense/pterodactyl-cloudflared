@@ -1,4 +1,6 @@
-FROM debian:bookworm-slim
+ARG CLOUDFLARED_VERSION=2026.5.0
+
+FROM debian:trixie-slim
 
 LABEL maintainer="Manuel Martinez <sina@serverscstrike.com>"
 
@@ -7,14 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
         ca-certificates \
         wget \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then \
-        wget -O /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        wget -O /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64.deb; \
-    else \
-        echo "Unsupported architecture: $ARCH" && exit 1; \
-    fi \
+    && wget -O /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/download/$CLOUDFLARED_VERSION/cloudflared-linux-amd64.deb \
     && dpkg -i /tmp/cloudflared.deb \
     && rm /tmp/cloudflared.deb \
     && rm -rf /var/lib/apt/lists/* \
