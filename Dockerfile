@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
         ca-certificates \
         wget \
+        adduser \
     && wget -O /tmp/cloudflared.deb https://github.com/cloudflare/cloudflared/releases/download/$CLOUDFLARED_VERSION/cloudflared-linux-amd64.deb \
     && dpkg -i /tmp/cloudflared.deb \
     && rm /tmp/cloudflared.deb \
