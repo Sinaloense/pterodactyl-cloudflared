@@ -1,6 +1,6 @@
-ARG CLOUDFLARED_VERSION=2026.5.0
-
 FROM debian:trixie-slim
+
+ARG CLOUDFLARED_VERSION=2026.5.0
 
 LABEL maintainer="Manuel Martinez <sina@serverscstrike.com>"
 
