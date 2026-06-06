@@ -15,9 +15,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - cloudflared_version: 2026.5.0
+          - cloudflared_version: 2026.5.2
             tags: |
-              2026.5.0
+              2026.5.2
               2026.5
               latest
 
