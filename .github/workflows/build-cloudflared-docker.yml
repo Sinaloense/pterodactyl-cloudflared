@@ -15,10 +15,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - cloudflared_version: 2026.8.2
+          - cloudflared_version: 2026.9.1
             tags: |
-              2026.8.2
-              2026.8
+              2026.9.1
+              2026.9
               latest
 
     steps:
