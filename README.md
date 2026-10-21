@@ -16,7 +16,7 @@ This repository provides everything needed to integrate a Cloudflare tunnel (clo
 - Allows exposing services without opening ports.
 - Compatible with custom eggs.
 - Automatic log rotation.
-- Cloudflared version: `2026.10.1`.
+- Cloudflared version: `2026.10.3`.
 
 ## Requirements
 
