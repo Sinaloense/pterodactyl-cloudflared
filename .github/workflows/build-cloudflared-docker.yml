@@ -1,5 +1,4 @@
 name: Build & Push Cloudflared
-run-name: ${{ inputs.version != '' && format('Build & Push Cloudflared {0}', inputs.version) || 'Build & Push Cloudflared' }}
 
 on:
   schedule:
@@ -8,11 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión específica (déjalo vacío para compilar la última automática)'
+        description: 'Specific cloudflared version (leave empty for latest)'
         required: false
         default: ''
       force:
-        description: 'Forzar compilación aunque la versión ya exista en GHCR'
+        description: 'Force build even if version already exists in GHCR'
         required: false
         type: boolean
         default: false
@@ -35,7 +34,7 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Obtener versión de Cloudflared
+      - name: Get Cloudflared version
         id: get_version
         run: |
           set -e
@@ -45,10 +44,10 @@ jobs:
             VERSION=$(echo "$INPUT_VERSION" | sed 's/^v//')
             IS_LATEST=false
 
-            echo "Validando versión '$VERSION' en Cloudflare..."
+            echo "Validating version '$VERSION' on Cloudflare..."
             HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -I "https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-amd64.deb")
             if [ "$HTTP_STATUS" -ne 302 ] && [ "$HTTP_STATUS" -ne 200 ]; then
-              echo "::error::La versión '${VERSION}' no existe o no tiene paquete .deb en Cloudflare (HTTP $HTTP_STATUS)."
+              echo "::error::Version '${VERSION}' does not exist or has no .deb package on Cloudflare (HTTP $HTTP_STATUS)."
               exit 1
             fi
           else
@@ -58,16 +57,16 @@ jobs:
             IS_LATEST=true
 
             if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
-              echo "::error::No se pudo obtener la última versión desde la API de GitHub."
+              echo "::error::Failed to fetch the latest version from GitHub API."
               exit 1
             fi
           fi
 
-          echo "Versión seleccionada: $VERSION"
+          echo "Selected version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "is_latest=$IS_LATEST" >> $GITHUB_OUTPUT
 
-      - name: Verificar si la versión ya fue compilada
+      - name: Check if image already exists in GHCR
         id: check_image
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
@@ -75,13 +74,13 @@ jobs:
           IMAGE="ghcr.io/sinaloense/pterodactyl-cloudflared:$VERSION"
 
           if [ "$FORCE" = "true" ]; then
-            echo "Forzando compilación manual."
+            echo "Forcing build as requested."
             echo "should_build=true" >> $GITHUB_OUTPUT
           elif docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
-            echo "La imagen $IMAGE ya existe en GHCR. No requiere compilación."
+            echo "Image $IMAGE already exists in GHCR. Skipping build."
             echo "should_build=false" >> $GITHUB_OUTPUT
           else
-            echo "Nueva versión detectada ($IMAGE no existe). Compilando..."
+            echo "New version detected ($IMAGE does not exist). Building..."
             echo "should_build=true" >> $GITHUB_OUTPUT
           fi
 
@@ -109,7 +108,7 @@ jobs:
           VERSION="${{ needs.prepare.outputs.version }}"
           REPO="ghcr.io/sinaloense/pterodactyl-cloudflared"
 
-          # Extrae versión menor (ej. 2026.11 a partir de 2026.11.1)
+          # Extract minor version (e.g. 2026.11 from 2026.11.1)
           MINOR_TAG=$(echo "$VERSION" | cut -d. -f1,2)
 
           TAGS=("-t" "$REPO:$VERSION" "-t" "$REPO:$MINOR_TAG")
@@ -120,14 +119,14 @@ jobs:
             PUSH_TAGS+=("latest")
           fi
 
-          echo "Compilando versión $VERSION..."
+          echo "Building version $VERSION..."
           docker build \
             --platform linux/amd64 \
             --build-arg CLOUDFLARED_VERSION="$VERSION" \
             "${TAGS[@]}" \
             .
 
-          echo "Subiendo tags a GHCR..."
+          echo "Pushing tags to GHCR..."
           for tag in "${PUSH_TAGS[@]}"; do
             docker push "$REPO:$tag"
           done
