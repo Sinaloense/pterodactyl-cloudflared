@@ -1,59 +1,133 @@
 name: Build & Push Cloudflared
+run-name: ${{ inputs.version != '' && format('Build & Push Cloudflared {0}', inputs.version) || 'Build & Push Cloudflared' }}
 
 on:
+  schedule:
+    - cron: '0 11 * * *'
+
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión específica (déjalo vacío para compilar la última automática)'
+        required: false
+        default: ''
+      force:
+        description: 'Forzar compilación aunque la versión ya exista en GHCR'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
+  prepare:
+    name: Check version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      is_latest: ${{ steps.get_version.outputs.is_latest }}
+      should_build: ${{ steps.check_image.outputs.should_build }}
+
+    steps:
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Obtener versión de Cloudflared
+        id: get_version
+        run: |
+          set -e
+          INPUT_VERSION="${{ github.event.inputs.version }}"
+
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION=$(echo "$INPUT_VERSION" | sed 's/^v//')
+            IS_LATEST=false
+
+            echo "Validando versión '$VERSION' en Cloudflare..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -I "https://github.com/cloudflare/cloudflared/releases/download/${VERSION}/cloudflared-linux-amd64.deb")
+            if [ "$HTTP_STATUS" -ne 302 ] && [ "$HTTP_STATUS" -ne 200 ]; then
+              echo "::error::La versión '${VERSION}' no existe o no tiene paquete .deb en Cloudflare (HTTP $HTTP_STATUS)."
+              exit 1
+            fi
+          else
+            VERSION=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/cloudflare/cloudflared/releases/latest \
+              | jq -r .tag_name | sed 's/^v//')
+            IS_LATEST=true
+
+            if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+              echo "::error::No se pudo obtener la última versión desde la API de GitHub."
+              exit 1
+            fi
+          fi
+
+          echo "Versión seleccionada: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_latest=$IS_LATEST" >> $GITHUB_OUTPUT
+
+      - name: Verificar si la versión ya fue compilada
+        id: check_image
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          FORCE="${{ github.event.inputs.force }}"
+          IMAGE="ghcr.io/sinaloense/pterodactyl-cloudflared:$VERSION"
+
+          if [ "$FORCE" = "true" ]; then
+            echo "Forzando compilación manual."
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          elif docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "La imagen $IMAGE ya existe en GHCR. No requiere compilación."
+            echo "should_build=false" >> $GITHUB_OUTPUT
+          else
+            echo "Nueva versión detectada ($IMAGE no existe). Compilando..."
+            echo "should_build=true" >> $GITHUB_OUTPUT
+          fi
+
   build:
-    name: Build & Push Cloudflared ${{ matrix.cloudflared_version }}
+    name: Build & Push Cloudflared ${{ needs.prepare.outputs.version }}
+    needs: prepare
+    if: needs.prepare.outputs.should_build == 'true'
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
       packages: write
 
-    strategy:
-      matrix:
-        include:
-          - cloudflared_version: 2026.10.7
-            tags: |
-              2026.10.7
-              2026.10
-              latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Build image
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build & Push Docker image
         run: |
           set -e
+          VERSION="${{ needs.prepare.outputs.version }}"
+          REPO="ghcr.io/sinaloense/pterodactyl-cloudflared"
 
-          TAG_ARGS=""
+          # Extrae versión menor (ej. 2026.11 a partir de 2026.11.1)
+          MINOR_TAG=$(echo "$VERSION" | cut -d. -f1,2)
 
-          while IFS= read -r tag; do
-            tag=$(echo "$tag" | xargs)
+          TAGS=("-t" "$REPO:$VERSION" "-t" "$REPO:$MINOR_TAG")
+          PUSH_TAGS=("$VERSION" "$MINOR_TAG")
 
-            [ -z "$tag" ] && continue
+          if [ "${{ needs.prepare.outputs.is_latest }}" = "true" ]; then
+            TAGS+=("-t" "$REPO:latest")
+            PUSH_TAGS+=("latest")
+          fi
 
-            TAG_ARGS="$TAG_ARGS -t ghcr.io/sinaloense/pterodactyl-cloudflared:$tag"
-          done <<< "${{ matrix.tags }}"
-
+          echo "Compilando versión $VERSION..."
           docker build \
             --platform linux/amd64 \
-            --build-arg CLOUDFLARED_VERSION="${{ matrix.cloudflared_version }}" \
-            $TAG_ARGS \
+            --build-arg CLOUDFLARED_VERSION="$VERSION" \
+            "${TAGS[@]}" \
             .
 
-      - name: Login to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Push image
-        run: |
-          while IFS= read -r tag; do
-            tag=$(echo "$tag" | xargs)
-
-            [ -z "$tag" ] && continue
-
-            docker push ghcr.io/sinaloense/pterodactyl-cloudflared:$tag
-          done <<< "${{ matrix.tags }}"
+          echo "Subiendo tags a GHCR..."
+          for tag in "${PUSH_TAGS[@]}"; do
+            docker push "$REPO:$tag"
+          done
