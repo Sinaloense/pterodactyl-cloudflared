@@ -1,9 +1,6 @@
 name: Build & Push Cloudflared
 
 on:
-  schedule:
-    - cron: '0 10 * * *'
-
   workflow_dispatch:
     inputs:
       version:
